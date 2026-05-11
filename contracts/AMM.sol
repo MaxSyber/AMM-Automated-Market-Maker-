@@ -97,4 +97,23 @@ contract AMM {
 
         emit Swap(msg.sender, address(token2), _token2Amount, address(token1), token1Amount, token1Balance, token2Balance, block.timestamp);
     }
-}
+    function calculateWithdrawAmount(uint256 _share) public view returns(uint256 token1Amount, uint256 token2Amount) {
+        require (_share <= totalShares, "Must be Less Than Total Shares");
+        token1Amount = (_share * token1Balance / totalShares);
+        token2Amount = (_share * token2Balance / totalShares);
+    }
+    function removeLiquidity(uint256 _share) external returns(uint256 token1Amount, uint256 token2Amount) {
+        require(_share <= shares[msg.sender], "Cannont Withdraw More Shares Than you Have");
+        (token1Amount, token2Amount) = calculateWithdrawAmount(_share);
+
+        shares[msg.sender] -= _share;
+        totalShares -= _share;
+
+        token1Balance -= token1Amount;
+        token2Balance -= token2Amount;
+        K = token1Balance * token2Balance;
+
+        token1.transfer(msg.sender, token1Amount);
+        token2.transfer(msg.sender, token2Amount);
+    }
+}  
